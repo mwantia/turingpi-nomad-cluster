@@ -106,9 +106,9 @@ job "traefik" {
                 certResolver: lets-encrypt
                 options: default
                 domains:
-                  - main: 'wantia.app'
+                  - main: '...'
                     sans:
-                      - '*.wantia.app'
+                      - '*....'
         global:
           sendAnonymousUsage: false
           checkNewVersion: false
