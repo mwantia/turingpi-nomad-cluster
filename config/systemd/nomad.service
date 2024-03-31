@@ -1,0 +1,30 @@
+[Unit]
+Description=Nomad Client
+Documentation=https://www.nomadproject.io/docs/
+Wants=network-online.target
+After=network-online.target
+
+Wants=tailscaled.service
+After=tailscaled.service
+
+Wants=consul.service
+After=consul.service
+
+[Service]
+WorkingDirectory=/var/lib/nomad
+User=root  # Only use root for clients, otherwise create a system user 'nomad'.
+Group=root # Only use root for clients, otherwise create a system user 'nomad'.
+EnvironmentFile=/var/lib/nomad/nomad.env
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/nomad agent -config /var/lib/nomad/config
+KillMode=process
+KillSignal=SIGINT
+LimitNOFILE=65536
+LimitNPROC=infinity
+Restart=on-failure
+RestartSec=2
+TasksMax=infinity
+OOMScoreAdjust=-1000
+
+[Install]
+WantedBy=multi-user.target

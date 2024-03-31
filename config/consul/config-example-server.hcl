@@ -7,6 +7,7 @@ advertise_addr = "{{ GetInterfaceIP \"tailscale0\" }}"
 node_name      = "<node-name>"
 datacenter     = "dc1"
 # Generate by using command "consul keygen".
+# This key must be the same for all servers and clients.
 encrypt        = "<encrypt-key>"
 log_level      = "WARN"
 server         = true

@@ -1,0 +1,19 @@
+[Unit]
+Description=HashiCorp Consul - A service mesh solution
+Documentation=https://www.consul.io/
+Wants=network-online.target
+After=network-online.target
+
+Wants=tailscaled.service
+After=tailscaled.service
+
+[Service]
+WorkingDirectory=/var/lib/consul
+User=consul
+Group=consul
+ExecStart=/usr/local/bin/consul agent -data-dir /srv/consul/data -config-dir=/var/lib/consul/config -config-dir=/var/lib/consul/services
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
