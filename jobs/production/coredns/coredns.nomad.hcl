@@ -1,6 +1,7 @@
 job "coredns" {
   datacenters = [ "*" ]
   region      = "global"
+  type        = "system"
 
   namespace   = "production"
   node_pool   = "all"
@@ -8,6 +9,11 @@ job "coredns" {
   constraint {
     attribute = "${attr.kernel.name}"
     value     = "linux"
+  }
+
+  constraint {
+    attribute = "${meta.node.keepalived}"
+    value     = "true"
   }
 
   group "servers" {

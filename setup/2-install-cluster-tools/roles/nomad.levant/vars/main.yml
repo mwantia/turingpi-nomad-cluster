@@ -1,0 +1,6 @@
+levant_architecture: arm64
+levant_version: '0.3.3'
+levant_sha256_checksum: 'e2e3bf5aed271d848d8aac86b4649594b7f9aa1e11aa4612f5b571f97598bba4'
+
+levant_release_url: 'https://releases.hashicorp.com/levant/{{ levant_version }}/levant_{{ levant_version }}_linux_{{ levant_architecture }}.zip'
+levant_install_path: '/usr/local/bin'

@@ -27,6 +27,12 @@ job "truenas-nfs-controller" {
       }
     }
 
+    service {
+      name = "truenas-nfs-controller"
+      port = "grpc"
+      tags = [ ]
+    }
+
     ephemeral_disk {
       size = 150
     }

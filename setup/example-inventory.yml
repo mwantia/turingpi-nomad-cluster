@@ -1,0 +1,20 @@
+all:
+  children:
+    servers:
+      hosts:
+        turing-server1:
+          ansible_host: 10.1.0.1
+        turing-server2:
+          ansible_host: 10.1.0.2
+    clients:
+      hosts:
+        turing-client1:
+          ansible_host: 10.2.0.1
+        turing-client2:
+          ansible_host: 10.2.0.2
+    vault:
+      hosts:
+        turing-vault1:
+          ansible_host: 10.3.0.1
+  vars:
+    ansible_user: 'root'

@@ -1,0 +1,6 @@
+nomad_pack_architecture: arm64
+nomad_pack_version: '0.1.1-dev'
+nomad_pack_sha256_checksum: '78d30e262569d5a58d22501f0701b335f7a47f0f03f0dceca3a8de14fc113e01'
+
+nomad_pack_release_url: 'https://github.com/hashicorp/nomad-pack/releases/download/nightly/nomad-pack_{{ nomad_pack_version }}_linux_{{ levant_architecture }}.zip'
+nomad_pack_install_path: '/usr/local/bin'

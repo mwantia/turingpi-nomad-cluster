@@ -1,0 +1,17 @@
+- name: 'download levant version {{ levant_version }}'
+  get_url:
+    url: '{{ levant_release_url }}'
+    dest: '/tmp/levant_{{ levant_version }}.zip'
+    checksum: 'sha256:{{ levant_sha256_checksum }}'
+
+- name: 'unarchive levant to {{ levant_install_path }}'
+  unarchive:
+    src: '/tmp/levant_{{ levant_version }}.zip'
+    dest: '{{ levant_install_path }}'
+    mode: 'a+x'    
+    remote_src: true
+
+- name: 'remove levant archive from /tmp'
+  file:
+    path: '/tmp/levant_{{ levant_version }}.zip'
+    state: absent

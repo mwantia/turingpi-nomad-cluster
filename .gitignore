@@ -1,0 +1,5 @@
+[Tt]tmp/
+[Cc]erts/
+
+**/*.override.*
+**/*.inventory.*

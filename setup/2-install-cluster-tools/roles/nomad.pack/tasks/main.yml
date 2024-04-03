@@ -1,0 +1,17 @@
+- name: 'download nomad-pack version {{ nomad_pack_version }}'
+  get_url:
+    url: '{{ nomad_pack_release_url }}'
+    dest: '/tmp/nomad-pack_{{ nomad_pack_version }}.zip'
+    checksum: 'sha256:{{ nomad_pack_sha256_checksum }}'
+
+- name: 'unarchive nomad-pack to {{ nomad_pack_install_path }}'
+  unarchive:
+    src: '/tmp/nomad-pack_{{ nomad_pack_version }}.zip'
+    dest: '{{ nomad_pack_install_path }}'
+    mode: 'a+x'    
+    remote_src: true
+
+- name: 'remove nomad-pack archive from /tmp'
+  file:
+    path: '/tmp/nomad-pack_{{ nomad_pack_version }}.zip'
+    state: absent

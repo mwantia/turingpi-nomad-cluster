@@ -1,6 +1,7 @@
 job "traefik" {
   datacenters = [ "*" ]
   region      = "global"
+  type        = "system"
 
   namespace   = "production"
   node_pool   = "all"
@@ -10,6 +11,11 @@ job "traefik" {
     value     = "linux"
   }
 
+  constraint {
+    attribute = "${meta.node.keepalived}"
+    value     = "true"
+  }
+
   group "servers" {
     network {
       mode = "bridge"
@@ -17,12 +23,6 @@ job "traefik" {
       port "admin" { 
         to     = 8080
         static = 8080
-      }
-
-      port "web" {
-        to           = 80
-        static       = 80
-        host_network = "keepalived"
       }
 
       port "websecure" {
@@ -69,6 +69,27 @@ job "traefik" {
       config {
         image = "traefik:v3.0"
         args  = ["--configFile=/secrets/traefik.yaml"]
+
+        mount {
+          type = "bind"
+          target = "/etc/ssl/certs/rootCA.crt"
+          source = "secrets/rootCA.crt"
+          readonly = true
+
+          bind_options {
+            propagation = "rshared"
+          }
+        }
+      }
+
+      template {
+        destination = "secrets/rootCA.crt"
+        change_mode = "noop"
+        data        = <<-EOH
+        {{- with secret "certificates/rootca" }}
+        {{ .Data.data.crt }}
+        {{- end }}
+        EOH
       }
 
       template {
@@ -90,25 +111,19 @@ job "traefik" {
         right_delimiter = "]]"
         data        = <<-EOH
         entrypoints:
-          web:
-            address: ':80'
-            http:
-              redirections:
-                entryPoint:
-                  to: websecure
-                  scheme: https
           websecure:
             address: ':443'
             http:
-        #     middlewares:
-        #       - 'secure-headers@file'
+              middlewares:
+                - 'secure-headers@file'
               tls:
                 certResolver: lets-encrypt
                 options: default
                 domains:
-                  - main: 'wantia.app'
+                  - main: '*.wantia.app'
                     sans:
                       - '*.wantia.app'
+                      - 'wantia.app'
         global:
           sendAnonymousUsage: false
           checkNewVersion: false
@@ -129,11 +144,9 @@ job "traefik" {
             endpoint:
               address: '100.79.63.127:8501'
               scheme: https
-              [[- with secret "credentials/production/job/traefik/consul" ]]
-              token: '[[ .Data.data.token ]]'
-              [[- end ]]
+              token: '[[ env "CONSUL_TOKEN" ]]'
               tls:
-                insecureSkipVerify: true
+                insecureSkipVerify: false
             connectAware: true
             connectByDefault: true
             exposedByDefault: false
@@ -144,7 +157,6 @@ job "traefik" {
             acme:         
               email: '[[ .Data.data.api_email ]]'
               storage: /alloc/data/acme.json
-              caserver: 'https://acme-staging-v02.api.letsencrypt.org/directory'
               dnschallenge:
                 provider: cloudflare
                 disablepropagationcheck: true
@@ -183,12 +195,12 @@ job "traefik" {
                 - TLS_AES_128_GCM_SHA256
                 - TLS_AES_256_GCM_SHA384
                 - TLS_CHACHA20_POLY1305_SHA256
-              curvePreferences:\
+              curvePreferences:
                 - CurveP521
                 - CurveP384
               sniStrict: true
-              mintls13:
-                minVersion: VersionTLS13
+            mintls13:
+              minVersion: VersionTLS13
         EOH
         destination = "local/config/tls-options-default.yml"
         change_mode = "restart"
@@ -201,12 +213,52 @@ job "traefik" {
         destination = "local/config/authelia-forwardauth.yml"
         change_mode = "restart"
       }
+
+      template {
+        data        = <<-EOH
+        http:
+          middlewares:
+            secure-headers:
+              headers:
+                browserXssFilter: true
+                contentTypeNosniff: true
+                accessControlMaxAge: 100
+                accessControlAllowMethods: 
+                  - GET
+                  - OPTIONS
+                  - PUT
+                referrerPolicy: same-origin
+                forceSTSHeader: true
+                stsIncludeSubdomains: true
+                stsPreload: true
+                stsSeconds: 31536000
+                customFrameOptionsValue: SAMEORIGIN
+                hostsProxyHeaders: 
+                  - X-Forwarded-Host
+                sslProxyHeaders:
+                  X-Forwarded-Proto: https
+                customRequestHeaders:
+                  X-Forwarded-Proto: https
+                customResponseHeaders:
+                  X-Forwarded-Proto: https
+                  X-Robots-Tag: 'none,noarchive,nosnippet,notranslate,noimageindex'
+                  server: ''
+        EOH
+        destination = "local/config/secure-headers.yml"
+        change_mode = "restart"
+      }
       
       identity {
         env = true
       }
-      
-      vault { }
+
+      consul { 
+
+      }
+
+      vault {
+
+      }
       
       resources {
         cpu    = 128

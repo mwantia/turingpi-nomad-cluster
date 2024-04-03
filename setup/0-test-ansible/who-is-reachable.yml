@@ -1,0 +1,20 @@
+- hosts: all
+  connection: local
+  gather_facts: no
+  tasks:
+    - block:
+        - name: determine hosts that are up
+          wait_for_connection:
+            timeout: 2
+          vars:
+            ansible_connection: ssh
+        - name: add devices with connectivity to "reachable"
+          group_by:
+            key: "reachable"
+      rescue:
+        - debug: msg="cannot connect to {{ inventory_hostname }}"
+
+- hosts: reachable
+  gather_facts: false
+  tasks:
+    - debug: msg="{{ inventory_hostname }} is reachable"

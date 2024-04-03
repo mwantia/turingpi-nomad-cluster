@@ -1,4 +1,4 @@
-job "victoria-metrics" {
+job "victoria-logs" {
   datacenters = [ "*" ]
   region      = "global"
   type        = "system"
@@ -22,17 +22,13 @@ job "victoria-metrics" {
 
       port "metrics" { }
       port "envoy"   { }
-
-      port "http" {
-        to     = "4828"
-        static = "4828"
-      }
     }
 
     service {
-      name = "victoria-metrics"
+      name = "victoria-logs"
       task = "service"
-      port = "http"
+      tags = [ "traefik.enable=true", "traefik.location=production" ]
+      port = 9428
 
       meta {
         metrics_path = "/metrics"
@@ -49,7 +45,7 @@ job "victoria-metrics" {
               path {
                 path            = "/metrics"
                 protocol        = "http"
-                local_path_port = 4828
+                local_path_port = 9428
                 listener_port   = "metrics"
               }
             }
@@ -74,7 +70,7 @@ job "victoria-metrics" {
     volume "data" {
       type            = "csi"
       read_only       = false
-      source          = "victoria-metrics-nfs-data"
+      source          = "victoria-logs-nfs-data"
       access_mode     = "single-node-writer"
       attachment_mode = "file-system"
     }
@@ -84,8 +80,8 @@ job "victoria-metrics" {
       user   = "root"
 
       config {
-        image   = "victoriametrics/victoria-metrics:latest"
-        args    = [ "--storageDataPath=/data", "--httpListenAddr=:4828", "--retentionPeriod=365d" ]
+        image   = "victoriametrics/victoria-logs:latest"
+        args    = [ "--storageDataPath=/data", "--httpListenAddr=:9428", "--retentionPeriod=365d" ]
       }
 
       volume_mount {
